@@ -11,13 +11,25 @@ export async function POST(req: Request) {
 
     console.log(`[v0] WhatsApp webhook received from ${from}: ${body}`)
 
-    // Parse the button response
+    // Parse the response (support buttons, text, numeric replies, and snake_case)
     let decision = "NONE"
     let fanCommand = "NORMAL"
-    if (body?.toLowerCase().includes("sell now") || body?.toLowerCase().includes("confirm")) {
+    const cleanBody = body?.trim().toLowerCase() || ""
+
+    if (
+      cleanBody.includes("sell now") ||
+      cleanBody.includes("sell_now") ||
+      cleanBody === "1" ||
+      cleanBody.includes("confirm")
+    ) {
       decision = "SELL_NOW"
       fanCommand = "STOP"
-    } else if (body?.toLowerCase().includes("sell later") || body?.toLowerCase().includes("cancel")) {
+    } else if (
+      cleanBody.includes("sell later") ||
+      cleanBody.includes("sell_later") ||
+      cleanBody === "2" ||
+      cleanBody.includes("cancel")
+    ) {
       decision = "SELL_LATER"
       fanCommand = "NORMAL"
     }

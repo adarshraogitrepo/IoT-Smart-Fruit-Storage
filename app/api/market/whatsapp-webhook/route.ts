@@ -32,6 +32,8 @@ export async function POST(req: Request) {
       return new NextResponse(xml, { status: 500, headers: { "Content-Type": "text/xml" } })
     }
 
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+
     // SELL NOW / reply "1"
     if (messageBody.includes("SELL NOW") || messageBody === "1" || messageBody.includes("SELL_NOW")) {
       console.log("[v0] SELL NOW detected - writing STOP to Firebase")
@@ -39,13 +41,18 @@ export async function POST(req: Request) {
       await set(ref(db, "fanControl/command"), "STOP")
       await set(ref(db, "marketDecisions/latest"), {
         decision: "SELL_NOW",
-        timestamp: Date.now(),
-        respondedBy: from,
+        temperature: null,
+        humidity: null,
+        mq135: null,
+        fanSuggestion: 1,
+        phone: from,
+        sentAt: Date.now(),
+        expiresAt,
       })
 
       console.log("[v0] STOP command written to Firebase successfully")
 
-      const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>✅ SELL NOW confirmed. Fan will stop immediately.</Message></Response>`
+      const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>✅ SELL NOW confirmed. Fan stopped immediately.</Message></Response>`
       return new NextResponse(xml, { status: 200, headers: { "Content-Type": "text/xml" } })
     }
 
@@ -56,13 +63,18 @@ export async function POST(req: Request) {
       await set(ref(db, "fanControl/command"), "NORMAL")
       await set(ref(db, "marketDecisions/latest"), {
         decision: "SELL_LATER",
-        timestamp: Date.now(),
-        respondedBy: from,
+        temperature: null,
+        humidity: null,
+        mq135: null,
+        fanSuggestion: 0,
+        phone: from,
+        sentAt: Date.now(),
+        expiresAt,
       })
 
       console.log("[v0] NORMAL command written to Firebase successfully")
 
-      const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>✅ SELL LATER confirmed. Fans will continue running as usual.</Message></Response>`
+      const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>✅ SELL LATER confirmed. Continuing optimal storage.</Message></Response>`
       return new NextResponse(xml, { status: 200, headers: { "Content-Type": "text/xml" } })
     }
 
