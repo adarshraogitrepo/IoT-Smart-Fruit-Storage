@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import * as admin from "firebase-admin"
+import admin from "firebase-admin"
 
 function getAdminDb() {
-  if (admin.apps.length > 0) {
+  if ((admin.apps || []).length > 0) {
     return admin.app().database()
   }
 
@@ -10,7 +10,7 @@ function getAdminDb() {
   const databaseURL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
 
   if (!serviceAccount || !databaseURL) {
-    console.error("[v0] Missing Firebase Admin credentials")
+    console.error("[v0] Missing Firebase Admin credentials - GCP_SERVICE_ACCOUNT or FIREBASE_DATABASE_URL not set on Vercel")
     return null
   }
 
